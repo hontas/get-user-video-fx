@@ -8,6 +8,7 @@ let width;
 let height;
 let colorMixerSliderElements;
 let chromaKeySliderElements;
+let brightnessAndContrastElements;
 let form;
 let colorInput;
 let chromaColor = colorUtils.rgbToHsl(0, 255, 0);
@@ -29,6 +30,7 @@ function init() {
     ...document.querySelectorAll('[name=color-channels] input[type=range]')
   ];
   chromaKeySliderElements = [...document.querySelectorAll('[name=chroma-key] input[type=range]')];
+  brightnessAndContrastElements = [...document.querySelectorAll('[name=adjust] input[type=range]')];
   form = document.getElementById('form');
   colorInput = document.querySelector('input[type=color]');
   video = document.getElementById('video');
@@ -47,10 +49,12 @@ function init() {
   form['grayscale'].addEventListener('change', updateGrayScaleStrategy, false);
   form['color-channels'].addEventListener('input', updateColorMixerValues, false);
   form['chroma-key'].addEventListener('input', updateChromaKeyThreshold, false);
+  form['adjust'].addEventListener('input', updateBrightnessAndContarst, false);
 
-  // gete initial vaklues from DOM
+  // get initial vaklues from DOM
   updateColorMixerValues();
   updateChromaKeyThreshold();
+  updateBrightnessAndContarst();
 
   canvas.width = width;
   canvas.height = height;
@@ -126,6 +130,7 @@ function onReset() {
   setTimeout(() => {
     updateColorMixerValues();
     updateChromaKeyThreshold();
+    updateBrightnessAndContarst();
     updateColorMode({ target: { value: 'color' } });
     updateGrayScaleStrategy({ target: { value: 'mix' } });
   }, 1);
@@ -143,6 +148,12 @@ function updateChromaColor({ target }) {
 
 function updateChromaKeyThreshold() {
   chromaKeyThreshold = chromaKeySliderElements.map(({ value }) => parseFloat(value, 10));
+}
+
+function updateBrightnessAndContarst() {
+  pixelUtils.setBrightnessAndContrast(
+    brightnessAndContrastElements.map(({ value }) => parseInt(value, 10))
+  );
 }
 
 function toggleEffects({ target }) {

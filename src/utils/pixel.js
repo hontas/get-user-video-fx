@@ -1,5 +1,15 @@
 import * as colorUtils from './color';
 
+let brightness;
+let contrast;
+let intercept;
+
+export function setBrightnessAndContrast([b, c]) {
+  brightness = b;
+  contrast = c / 100 + 1;
+  intercept = 128 * (1 - contrast);
+}
+
 export function red(r) {
   return r;
 }
@@ -16,48 +26,74 @@ export function mix(r, g, b, sliders) {
   return (r * sliders[0] + g * sliders[1] + b * sliders[2]) / 3;
 }
 
+function brightnessAndContrast(value) {
+  return (value + brightness) * contrast + intercept;
+}
+
 const strategies = { mix, red, green, blue };
 
 export function grayScale(frame, strategy, sliders) {
-  const allData = frame.data.length;
+  const imgData = frame.data;
+  const allData = imgData.length;
+  const alpha = sliders[3] * 255;
+  let output;
+
   for (let i = 0; i < allData; i += 4) {
-    const [r, g, b] = frame.data.slice(i, i + 4);
-    const output = strategies[strategy](r, g, b, sliders);
-    frame.data[i] = output;
-    frame.data[i + 1] = output;
-    frame.data[i + 2] = output;
-    frame.data[i + 3] = sliders[3] * 255;
+    output = strategies[strategy](
+      brightnessAndContrast(imgData[i]),
+      brightnessAndContrast(imgData[i + 1]),
+      brightnessAndContrast(imgData[i + 2]),
+      sliders
+    );
+
+    imgData[i] = output;
+    imgData[i + 1] = output;
+    imgData[i + 2] = output;
+    imgData[i + 3] = alpha;
   }
+
   return frame;
 }
 
 export function mixColors(frame, sliders) {
-  const allData = frame.data.length;
+  const imgData = frame.data;
+  const allData = imgData.length;
+  const alpha = sliders[3] * 255;
+
   for (let i = 0; i < allData; i += 4) {
-    const [r, g, b] = frame.data.slice(i, i + 4);
-    frame.data[i] = r * sliders[0];
-    frame.data[i + 1] = g * sliders[1];
-    frame.data[i + 2] = b * sliders[2];
-    frame.data[i + 3] = sliders[3] * 255;
+    imgData[i] = brightnessAndContrast(imgData[i]) * sliders[0];
+    imgData[i + 1] = brightnessAndContrast(imgData[i + 1]) * sliders[1];
+    imgData[i + 2] = brightnessAndContrast(imgData[i + 2]) * sliders[2];
+    imgData[i + 3] = alpha;
   }
+
   return frame;
 }
 
 const similar = 1 / 6;
 export function chromaColors(frame, chromaKeyHSL, HSLThreshold) {
-  const allData = frame.data.length;
+  const imgData = frame.data;
+  const allData = imgData.length;
   const [hKey, sKey, lKey] = chromaKeyHSL;
   const [hThresh, sThresh, lThresh] = HSLThreshold;
 
   for (let i = 0; i < allData; i += 4) {
-    const [r, g, b] = frame.data.slice(i, i + 4);
-    const [h, s, l] = colorUtils.rgbToHsl(r, g, b);
-    const hDiff = Math.abs(h - hKey);
-    const sDiff = Math.abs(s - sKey);
-    const lDiff = Math.abs(l - lKey);
+    const r = brightnessAndContrast(imgData[i]);
+    const g = brightnessAndContrast(imgData[i + 1]);
+    const b = brightnessAndContrast(imgData[i + 2]);
+    const hsl = colorUtils.rgbToHsl(r, g, b);
+    const hDiff = Math.abs(hsl[0] - hKey);
+    const sDiff = Math.abs(hsl[1] - sKey);
+    const lDiff = Math.abs(hsl[2] - lKey);
+
+    imgData[i] = r;
+    imgData[i + 1] = g;
+    imgData[i + 2] = b;
+
     if (hDiff < hThresh && sDiff < sThresh && lDiff < lThresh) {
-      frame.data[i + 3] = (hDiff / similar) * 255;
+      imgData[i + 3] = (hDiff / similar) * 255;
     }
   }
+
   return frame;
 }
