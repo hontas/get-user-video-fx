@@ -2,10 +2,12 @@ import * as colorUtils from './color';
 
 let brightness;
 let contrast;
+let saturation;
 let intercept;
 
-export function setBrightnessAndContrast([b, c]) {
+export function setBrightnessAndContrast([b, c, sat]) {
   brightness = b;
+  saturation = sat / 100;
   contrast = c / 100 + 1;
   intercept = 128 * (1 - contrast);
 }
@@ -28,6 +30,11 @@ export function mix(r, g, b, sliders) {
 
 function brightnessAndContrast(value) {
   return (value + brightness) * contrast + intercept;
+}
+
+function saturate(r, g, b) {
+  const [h, s, l] = colorUtils.rgbToHsl(r, g, b);
+  return colorUtils.hslToRgb(h, s * saturation, l);
 }
 
 const strategies = { mix, red, green, blue };
@@ -60,11 +67,25 @@ export function mixColors(frame, sliders) {
   const allData = imgData.length;
   const alpha = sliders[3] * 255;
 
-  for (let i = 0; i < allData; i += 4) {
-    imgData[i] = brightnessAndContrast(imgData[i]) * sliders[0];
-    imgData[i + 1] = brightnessAndContrast(imgData[i + 1]) * sliders[1];
-    imgData[i + 2] = brightnessAndContrast(imgData[i + 2]) * sliders[2];
-    imgData[i + 3] = alpha;
+  if (saturation === 1) {
+    for (let i = 0; i < allData; i += 4) {
+      imgData[i] = brightnessAndContrast(imgData[i]) * sliders[0];
+      imgData[i + 1] = brightnessAndContrast(imgData[i + 1]) * sliders[1];
+      imgData[i + 2] = brightnessAndContrast(imgData[i + 2]) * sliders[2];
+      imgData[i + 3] = alpha;
+    }
+  } else {
+    for (let i = 0; i < allData; i += 4) {
+      const [r, g, b] = saturate(
+        brightnessAndContrast(imgData[i]) * sliders[0],
+        brightnessAndContrast(imgData[i + 1]) * sliders[1],
+        brightnessAndContrast(imgData[i + 2]) * sliders[2]
+      );
+      imgData[i] = r;
+      imgData[i + 1] = g;
+      imgData[i + 2] = b;
+      imgData[i + 3] = alpha;
+    }
   }
 
   return frame;

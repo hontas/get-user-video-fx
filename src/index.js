@@ -8,7 +8,7 @@ let width;
 let height;
 let colorMixerSliderElements;
 let chromaKeySliderElements;
-let brightnessAndContrastElements;
+let adjustElements;
 let form;
 let colorInput;
 let chromaColor = colorUtils.rgbToHsl(0, 255, 0);
@@ -30,7 +30,7 @@ function init() {
     ...document.querySelectorAll('[name=color-channels] input[type=range]')
   ];
   chromaKeySliderElements = [...document.querySelectorAll('[name=chroma-key] input[type=range]')];
-  brightnessAndContrastElements = [...document.querySelectorAll('[name=adjust] input[type=range]')];
+  adjustElements = [...document.querySelectorAll('[name=adjust] input[type=range]')];
   form = document.getElementById('form');
   colorInput = document.querySelector('input[type=color]');
   video = document.getElementById('video');
@@ -84,7 +84,10 @@ function draw() {
 
   if (effectsEnabled === false) {
     dstImage = srcImage;
-  } else if (colorMode === 'grayscale') {
+    return context.putImageData(dstImage, 0, 0);
+  }
+
+  if (colorMode === 'grayscale') {
     dstImage = pixelUtils.grayScale(srcImage, grayScaleStrategy, colorMixerValues);
   } else if (colorMode === 'chroma-key') {
     dstImage = pixelUtils.chromaColors(srcImage, chromaColor, chromaKeyThreshold);
@@ -151,9 +154,7 @@ function updateChromaKeyThreshold() {
 }
 
 function updateBrightnessAndContarst() {
-  pixelUtils.setBrightnessAndContrast(
-    brightnessAndContrastElements.map(({ value }) => parseInt(value, 10))
-  );
+  pixelUtils.setBrightnessAndContrast(adjustElements.map(({ value }) => parseInt(value, 10)));
 }
 
 function toggleEffects({ target }) {
