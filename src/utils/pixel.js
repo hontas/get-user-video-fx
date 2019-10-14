@@ -7,7 +7,7 @@ let intercept;
 
 export function setBrightnessAndContrast([b, c, sat]) {
   brightness = b;
-  saturation = sat / 100;
+  saturation = sat / 100 + 1;
   contrast = c / 100 + 1;
   intercept = 128 * (1 - contrast);
 }

@@ -1,6 +1,9 @@
+import * as glfx from 'glfx';
 import * as pixelUtils from './utils/pixel';
 import * as colorUtils from './utils/color';
 
+let glfxCanvas;
+let glfxTexture;
 let video;
 let context;
 let offScreenContext;
@@ -11,6 +14,7 @@ let chromaKeySliderElements;
 let adjustElements;
 let form;
 let colorInput;
+let adjustValues = [];
 let chromaColor = colorUtils.rgbToHsl(0, 255, 0);
 let colorMixerValues;
 let chromaKeyThreshold;
@@ -41,6 +45,11 @@ function init() {
   // mirror canvas
   offScreenContext.translate(width, 0);
   offScreenContext.scale(-1, 1);
+
+  // glfx
+  glfxCanvas = glfx.canvas();
+  glfxTexture = glfxCanvas.texture(video);
+  document.querySelector('.canvas-wrapper').insertAdjacentElement('afterend', glfxCanvas);
 
   document.getElementById('on-off').addEventListener('change', toggleEffects, false);
   form.addEventListener('reset', onReset, false);
@@ -86,6 +95,14 @@ function draw() {
     dstImage = srcImage;
     return context.putImageData(dstImage, 0, 0);
   }
+
+  glfxTexture.loadContentsOf(video);
+  glfxCanvas
+    .draw(glfxTexture)
+    .brightnessContrast(adjustValues[0], adjustValues[1])
+    .hueSaturation(adjustValues[3], adjustValues[2])
+    .vibrance(adjustValues[4])
+    .update();
 
   if (colorMode === 'grayscale') {
     dstImage = pixelUtils.grayScale(srcImage, grayScaleStrategy, colorMixerValues);
@@ -154,7 +171,9 @@ function updateChromaKeyThreshold() {
 }
 
 function updateBrightnessAndContarst() {
-  pixelUtils.setBrightnessAndContrast(adjustElements.map(({ value }) => parseInt(value, 10)));
+  const values = adjustElements.map(({ value }) => parseInt(value, 10));
+  pixelUtils.setBrightnessAndContrast(values);
+  adjustValues = values.map((value) => value / 100);
 }
 
 function toggleEffects({ target }) {

@@ -11,9 +11,11 @@
   <body>
     <video id="video" controls autoplay height="100"></video>
 
-    <div class="canvas-wrapper">
-      <img class="background-image" src="./assets/palms_ocean_beach.jpg" alt="caribbean island" />
-      <canvas class="canvas" id="canvas"></canvas>
+    <div class="canvas-container">
+      <div class="canvas-wrapper">
+        <img class="background-image" src="./assets/palms_ocean_beach.jpg" alt="caribbean island" />
+        <canvas class="canvas" id="canvas"></canvas>
+      </div>
     </div>
 
     <form class="rgb-form" id="form">
@@ -36,8 +38,16 @@
           contrast
         </label>
         <label>
-          <input type="range" min="0" , max="500" step="1" value="100" />
+          <input type="range" min="-100" , max="100" step="1" value="0" />
           saturation
+        </label>
+        <label>
+          <input type="range" min="-100" , max="100" step="1" value="0" />
+          hue
+        </label>
+        <label>
+          <input type="range" min="-100" , max="100" step="1" value="0" />
+          vibrance
         </label>
       </fieldset>
 

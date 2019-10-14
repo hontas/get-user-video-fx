@@ -10,9 +10,22 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
 }
 
+.canvas-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 video,
-canvas {
+canvas,
+.canvas-wrapper {
   width: 100%;
+}
+
+@media screen and (min-width: 720px) {
+  canvas:not([class]),
+  .canvas-wrapper {
+    width: 50%;
+  }
 }
 
 .canvas,
