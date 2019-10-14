@@ -2,6 +2,10 @@ name: Node CI
 
 on:
   push:
+    paths:
+      - 'index.html'
+      - 'src/**'
+      - 'assets/**'
     branches:
       - master
 
