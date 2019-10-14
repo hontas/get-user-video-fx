@@ -19,14 +19,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: npm install, build, and deploy
-        run: |
-          npm install
-          npm run build
-          git config --global user.email "lundin.pontus@gmail.com"
-          git config --global user.name "$GITHUB_ACTOR"
-          git add dist && git commit -m "Initial dist subtree commit"
-          REPOSITORY_PATH="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
-          git push $REPOSITORY_PATH `git subtree split --prefix dist master`:gh-pages --force
+      - name: Build and Deploy
+        uses: JamesIves/github-pages-deploy-action@master
         env:
-          CI: true
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: master
+          BRANCH: gh-pages
+          FOLDER: dist
+          BUILD_SCRIPT: npm install && npm run build
